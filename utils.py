@@ -20,11 +20,36 @@ class ListingsFromPage():
 
 class DetailsFromListing():
     def __init__(self,listing_url):
-        self.listing_soup_obj = BeautifulSoup(requests.get(listing_url).text,'lxml')
         self.listing_soup_obj = BeautifulSoup(requests.get(listing_url,headers=x).text,'lxml')
         self.js_script = json.loads((self.listing_soup_obj.findAll('div',{'class':'property-seo-links'})[0].findAll('script',{'type':'application/ld+json'})[0].text))
         self.property_pin_code = str(self.js_script['address']['postalCode'])
-        self.property_name = self.listing_soup_obj.find('title').text
+        self.property_basics()
+        self.amenities = self.return_amenities()
+    
+    def return_amenities(self):
+        amenities = []
+        amenities_div = self.listing_soup_obj.findAll('div',{'class':'amenity-group property-page-text col-xs-12 col-sm-8 no-pad'})[1:]
+        for curr_row in amenities_div:
+            span_rows = curr_row.findAll('span')
+            for curr_amenity in span_rows:
+                try:
+                    amenities.append(curr_amenity.find('span').text)
+                except:
+                    pass
+                return amenities
+    
+    def property_basics(self):
+        property_basics = self.listing_soup_obj.find('div',{'class':'content'})
+        self.property_name = property_basics.find('h1',{'class':'property-headline'}).text.strip()
         self.prop_address = self.listing_soup_obj.findAll('span',{'class':'property-map-address'})[0]
         for index,val in enumerate(self.prop_address.stripped_strings):
-            self.house_address =  val.strip().replace('\n','brrt').replace('  ','').replace('brrt',' ')
+            self.property_address =  val.strip().replace('\n','brrt').replace('  ','').replace('brrt',' ')
+        self.lat_long = property_basics.find('div',{'id':'walkscore-map-pane'}).attrs['data-src'].split('&')[0].split('center=')[-1]
+        self.property_bedrooms = property_basics.find('div',{'class':'listing-summary-detail'}).text.strip()
+        self.property_bathrooms = property_basics.find('div',{'class':'listing-summary-bathrooms listing-summary-section'}).find('div',{'class':'listing-summary-detail'}).text.strip()
+        self.property_size = property_basics.find('div',{'class':'listing-summary-unit-size listing-summary-section'}).find('div',{'class':'listing-summary-detail'}).text
+        prop_det = property_basics.find('div',{'class':'content-row-info col-xs-12 col-sm-8 no-pad'}).find('div',{'class':'shortentext'}).stripped_strings
+        text = []
+        for index,val in enumerate(prop_det):
+            text.append(val.replace('\t','').replace(u"\u2022",'').replace(u"\u2013",'-').replace(u"\u2019","'"))
+        self.property_details = ' '.join(text)
