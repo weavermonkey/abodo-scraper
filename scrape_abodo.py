@@ -19,4 +19,4 @@ for curr_code in pin_codes:
     for curr_pin_code in pin_codes:
       file_name = curr_pin_code+'.json'
       with open(file_name,'w') as json_op_file:
-        json.dump(property_details[curr_pin_code])
+        json.dump(property_details[curr_pin_code],json_op_file)
