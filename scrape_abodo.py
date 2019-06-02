@@ -8,7 +8,7 @@ property_details = {'60603':[],'60607':[]}
 
 final_json_keys = ['property_name','property_address','lat_long','property_bedrooms','property_bathrooms','property_size','property_details','amenities']
 for curr_code in pin_codes:
-  while(len(property_details[curr_code]) < 200):
+  while(len(property_details[curr_code]) <= 200):
     curr_home_page = ReturnHTML(curr_code).adobo_html
     listings = ListingsFromPage(curr_home_page).listing_urls
     for curr_listing in listings:
